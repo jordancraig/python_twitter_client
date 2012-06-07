@@ -1,0 +1,142 @@
+import sys
+import tweepy
+import webbrowser
+
+width = 5
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    
+    def disable(self):
+        self.HEADER = ''
+        self.OKBLUE = ''
+        self.OKGREEN = ''
+        self.WARNING = ''
+        self.FAIL = ''
+        self.ENDC = ''
+
+filePath = '/tmp/twitter_tokens'
+consumer_token = ''
+consumer_secret = ''
+authKey = ''
+authSecret = ''
+auth = tweepy.OAuthHandler(consumer_token, consumer_secret)
+
+def authenticate():
+    global authKey, authSecret
+    # try and read the authKey / authSecret from a file...
+    try:
+        file_object = open(filePath)
+        # read file details...
+        lines = file_object.readlines( )
+        file_object.close ()
+        # parse...
+        authKey = lines[0].rstrip('\n')
+        authSecret = lines[1].rstrip('\n')
+        print bcolors.OKGREEN + "Successfully identified!" + bcolors.ENDC
+    except IOError:
+        print 'Had problems reading file...'
+
+    # set up auth first...
+    auth = tweepy.OAuthHandler(consumer_token, consumer_secret)
+
+    if(authKey == ''):
+        # go and get authKey...!
+        try:
+            redirect_url = auth.get_authorization_url()
+            webbrowser.open(redirect_url, new=0, autoraise=True)
+        except tweepy.TweepError:
+            print 'Error! Failed to get request token. Aborting...!'
+        print "please go to this url : %s" % redirect_url
+        verifier = raw_input('Enter the PIN you are given at the above url : ')
+        print "you entered PIN : %s" % verifier
+        try:
+            auth.get_access_token(verifier)
+        except tweepy.TweepError:
+            print 'Error! Failed to get access token. Aborting...!'
+            menu()
+        print "access token : key : %s, secret : %s" % (auth.access_token.key, auth.access_token.secret)
+        # store these items somewhere...
+        toStore = [auth.access_token.key + "\n", auth.access_token.secret + "\n"]
+        file_object = open(filePath, 'w')
+        file_object.writelines (toStore)
+        file_object.close( )
+        api = tweepy.API(auth)
+        menu()
+    else:
+        auth.set_access_token(authKey, authSecret)
+        menu()
+
+def timeline():
+    try:
+        file_object = open(filePath)
+        # read file details...
+        lines = file_object.readlines( )
+        file_object.close ()
+        # parse...
+        authKey = lines[0].rstrip('\n')
+        authSecret = lines[1].rstrip('\n')
+        print bcolors.OKGREEN + "Successfully identified!" + bcolors.ENDC
+        auth = tweepy.OAuthHandler(consumer_token, consumer_secret)
+        auth.set_access_token(authKey, authSecret)
+        api = tweepy.API(auth)
+        user_tweets = api.home_timeline()
+        for status in tweepy.Cursor(api.friends_timeline).items(200):
+            print bcolors.OKGREEN + status.user.screen_name + ':' + bcolors.ENDC
+            print bcolors.FAIL + status.text.encode('utf-8') + bcolors.ENDC
+            print ''
+    except IOError:
+        authenticate()
+        
+
+def my_profile():
+    try:
+        file_object = open(filePath)
+        # read file details...
+        lines = file_object.readlines( )
+        file_object.close ()
+        # parse...
+        authKey = lines[0].rstrip('\n')
+        authSecret = lines[1].rstrip('\n')
+        auth = tweepy.OAuthHandler(consumer_token, consumer_secret)
+        auth.set_access_token(authKey, authSecret)
+        api = tweepy.API(auth)
+        for friend in tweepy.Cursor(api.friends).items():
+            print bcolors.OKGREEN + '{0:{width}}'.format(friend.screen_name, width=width) + bcolors.ENDC,
+        print
+        print
+        print
+            
+    except IOError:
+        authenticate()
+
+
+def menu():
+    print '-----------------------------------------------------------------------------------------'
+    print 
+    print '   Welcome to TwittyPy, a terminal based twitter client :D'
+    print 
+    print '-----------------------------------------------------------------------------------------'
+    print
+    print '1  View my timeline'
+    print '2  Following'
+    print '3  Followers'
+    print '4  Upload an image'
+
+    input = raw_input('What do you want to do?: ')
+    if (input == '1'):
+        timeline()
+    elif(input == '2'):
+        my_profile()
+        
+
+#call menu on start
+menu()
+
+
+
