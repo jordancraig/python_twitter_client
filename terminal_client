@@ -135,6 +135,7 @@ def followers():
             
     except IOError:
         authenticate()
+    menu()
 
 def following():
     try:
@@ -156,6 +157,7 @@ def following():
             
     except IOError:
         authenticate()
+    menu()
 
 
 def menu():
