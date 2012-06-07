@@ -21,8 +21,8 @@ class bcolors:
         self.ENDC = ''
 
 filePath = '/tmp/twitter_tokens'
-consumer_token = ''
-consumer_secret = ''
+consumer_token = 'RQEUfRnwORhOKTzMqBmXw'
+consumer_secret = 'kzdqwWzwpBE6qgpYoXMGEBYOh4lD1vcOGaj9tgak'
 authKey = ''
 authSecret = ''
 auth = tweepy.OAuthHandler(consumer_token, consumer_secret)
